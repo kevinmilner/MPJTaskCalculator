@@ -18,3 +18,5 @@ dependencies {
     testImplementation 'junit:junit:4.12'
 }
 
+archivesBaseName = 'mpj-task-calculator'
+version = '1.0'
