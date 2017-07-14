@@ -20,3 +20,7 @@ dependencies {
 
 archivesBaseName = 'mpj-task-calculator'
 version = '1.0'
+
+jar {
+     from sourceSets.main.allSource
+}
