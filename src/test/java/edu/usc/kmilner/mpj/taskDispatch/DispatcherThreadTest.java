@@ -160,5 +160,54 @@ public class DispatcherThreadTest {
 				break;
 		}
 	}
+	
+	@Test
+	public void testSubsetIndexes() {
+		// endIndex is exclusive
+		
+		// test start beginning, stop before end
+		for (int i=0; i<10; i++) {
+			int numTasks = randomSize(50, 500);
+			int startIndex = 0;
+			int endIndex = randomSize(numTasks/2, numTasks-1);
+			doTestSubsetIndexes(numTasks, startIndex, endIndex);
+		}
+		
+		// test start after beginning, stop at end
+		for (int i=0; i<10; i++) {
+			int numTasks = randomSize(50, 500);
+			int startIndex = randomSize(1, numTasks/2);
+			int endIndex = numTasks;
+			doTestSubsetIndexes(numTasks, startIndex, endIndex);
+		}
+		
+		// test random set in the middle
+		for (int i=0; i<10; i++) {
+			int numTasks = randomSize(50, 500);
+			int startIndex = randomSize(1, numTasks/2);
+			int endIndex = randomSize(startIndex+1, numTasks-1);
+			doTestSubsetIndexes(numTasks, startIndex, endIndex);
+		}
+	}
+	
+	private void doTestSubsetIndexes(int numTasks, int startIndex, int endIndex) {
+		DispatcherThread dispatcher = new DispatcherThread(10, numTasks, 1, numTasks, -1, true, startIndex, endIndex, null);
+		int numProcessed = 0;
+		while (true) {
+			int[] batch = dispatcher.getNextBatch(0);
+			
+			// check range
+			for (int index : batch) {
+				assertTrue("Index below expected range", index >= startIndex);
+				assertTrue("Index above expected range", index < endIndex);
+			}
+			
+			numProcessed += batch.length;
+			
+			if (batch.length == 0)
+				break;
+		}
+		assertEquals("Not all tasks dispatched!", endIndex - startIndex, numProcessed);
+	}
 
 }
