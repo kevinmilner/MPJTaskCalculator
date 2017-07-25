@@ -18,10 +18,10 @@ public class MPJ_AddTest extends MPJTaskCalculator {
 	// num tasks
 	private int num = 500;
 	// duration in millis of each task
-	private long sleepDuration = 100;
+	protected long sleepDuration = 100;
 	
 	// total sum of squares for this worker
-	private long sum;
+	protected long sum;
 	
 	public MPJ_AddTest(CommandLine cmd) {
 		super(cmd);
