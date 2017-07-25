@@ -35,6 +35,10 @@ public abstract class MPJTaskCalculator {
 	public static final boolean D = true;
 	public static final SimpleDateFormat df = new SimpleDateFormat("HH:mm:ss.SSS");
 
+	/**
+	 * Can be used to disable all MPJ related calls to run this as a pure java single node test.
+	 * Enabled with mpj.disable=true java property
+	 */
 	protected static final boolean SINGLE_NODE_NO_MPJ = Boolean.parseBoolean(System.getProperty("mpj.disable", "false"));
 
 	protected int rank;

@@ -10,7 +10,7 @@ import java.lang.management.ThreadMXBean;
  * @author Kevin Milner
  *
  */
-public class DeadlockDetectionThread extends Thread {
+class DeadlockDetectionThread extends Thread {
 	
 	private long checkMillis;
 	private ThreadMXBean tmx;

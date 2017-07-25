@@ -22,7 +22,7 @@ import com.google.common.collect.Maps;
  * @author Kevin Milner
  *
  */
-public class DispatcherThread extends Thread {
+class DispatcherThread extends Thread {
 	
 	private static final boolean D = true;
 	
@@ -36,7 +36,11 @@ public class DispatcherThread extends Thread {
 	private PostBatchHook postBatchHook;
 	private Map<Integer, int[]> outstandingBatches;
 	
-	public DispatcherThread(int size, int numTasks, int minPerDispatch, int maxPerDispatch,
+	DispatcherThread(int size, int numTasks, int minPerDispatch, int maxPerDispatch, boolean shuffle) {
+		this(size, numTasks, minPerDispatch, maxPerDispatch, -1, shuffle, 0, numTasks, null);
+	}
+	
+	DispatcherThread(int size, int numTasks, int minPerDispatch, int maxPerDispatch,
 			int exactDispatch, boolean shuffle, int startIndex, int endIndex, PostBatchHook postBatchHook) {
 		this.size = size;
 		this.minPerDispatch = minPerDispatch;
@@ -69,11 +73,11 @@ public class DispatcherThread extends Thread {
 		outstandingBatches = Maps.newHashMap();
 	}
 	
-	public void setPostBatchHook(PostBatchHook postBatchHook) {
+	void setPostBatchHook(PostBatchHook postBatchHook) {
 		this.postBatchHook = postBatchHook;
 	}
 	
-	protected synchronized int[] getNextBatch(int processIndex) {
+	synchronized int[] getNextBatch(int processIndex) {
 		if (outstandingBatches.containsKey(processIndex)) {
 			int[] prevBatch = outstandingBatches.get(processIndex);
 			if (postBatchHook != null) {
