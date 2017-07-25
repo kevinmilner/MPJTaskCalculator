@@ -24,3 +24,12 @@ version = '1.0'
 jar {
      from sourceSets.main.allSource
 }
+
+//test {
+//    testLogging {
+//        // Make sure output from
+//        // standard out or error is shown
+//        // in Gradle output.
+//        showStandardStreams = true
+//    }
+//}
