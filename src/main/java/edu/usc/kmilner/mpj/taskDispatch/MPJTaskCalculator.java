@@ -1,6 +1,6 @@
-package net.kevinmilner.mpj.taskDispatch;
+package edu.usc.kmilner.mpj.taskDispatch;
 
-import static net.kevinmilner.mpj.taskDispatch.Utils.*;
+import static edu.usc.kmilner.mpj.taskDispatch.Utils.*;
 
 import java.io.IOException;
 import java.lang.Thread.UncaughtExceptionHandler;

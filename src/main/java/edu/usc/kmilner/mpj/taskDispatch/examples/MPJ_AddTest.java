@@ -1,11 +1,11 @@
-package net.kevinmilner.mpj.taskDispatch.examples;
+package edu.usc.kmilner.mpj.taskDispatch.examples;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
+import edu.usc.kmilner.mpj.taskDispatch.MPJTaskCalculator;
 import mpi.MPI;
-import net.kevinmilner.mpj.taskDispatch.MPJTaskCalculator;
 
 /**
  * Simple {@link MPJTaskCalculator} example which sums the square of each task index.

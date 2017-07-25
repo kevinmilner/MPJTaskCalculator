@@ -1,4 +1,4 @@
-package net.kevinmilner.mpj.taskDispatch;
+package edu.usc.kmilner.mpj.taskDispatch;
 
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadInfo;

@@ -1,4 +1,4 @@
-package net.kevinmilner.mpj.taskDispatch;
+package edu.usc.kmilner.mpj.taskDispatch;
 
 import java.util.List;
 import java.util.concurrent.ExecutorService;

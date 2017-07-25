@@ -1,4 +1,4 @@
-package net.kevinmilner.mpj.taskDispatch;
+package edu.usc.kmilner.mpj.taskDispatch;
 
 /**
  * Interface for a hook to be run on the worker with rank=0 after the completion of each batch.
