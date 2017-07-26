@@ -21,7 +21,7 @@ MPJTaskCalculator uses an MPJ implementation for intra-process communication (ei
 First you will need to download or build a jar file for MPJTaskCalculator, and set up your MPJ environment. It depends on [Google Guava](https://github.com/google/guava) (developed with release 21) and [Apache Commons CLI 1.4](https://commons.apache.org/proper/commons-cli/). A "fat" jar including these dependencies is provided for convenience.
 
 ### Download latest release
-TODO
+Download a release [here](releases). The `mpj-task-calculator-all-<version>.jar` "fat" jar files contain all dependencies (except your MPJ implementation), and the `mpj-task-calculator-<version>.jar` only contain compiled MPJTaskCalculator code.
 
 ### Build source code
 MPJTaskCalculator uses [Gradle](https://gradle.org/) to build the code. First clone or download master or a branch, then build with these commands:
