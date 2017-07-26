@@ -1,11 +1,11 @@
 # MPJTaskCalculator
-Framework for executing predefined sets of independent tasks with MPJ (without having to write any MPI commands)
+Framework for executing predefined sets of independent parallel tasks with MPJ (without having to write any MPI commands)
 
 ## Build Status
 [![Build Status](https://travis-ci.org/kevinmilner/MPJTaskCalculator.svg?branch=master)](https://travis-ci.org/kevinmilner/MPJTaskCalculator)
 
 ## Applicable problems
-MPJTaskCalculator can be used to execute calculations where the following requirements are met:
+MPJTaskCalculator can be used to execute calculations in parallel where the following requirements are met:
 * The calculation is split into a number of predefined tasks
 * Each task can be executed independently of all other tasks (no dependencies)
 * The number of tasks is known at the beginning of the calculation
