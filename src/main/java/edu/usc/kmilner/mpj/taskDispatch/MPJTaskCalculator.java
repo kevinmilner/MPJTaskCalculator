@@ -158,6 +158,9 @@ public abstract class MPJTaskCalculator {
 		System.out.flush();
 	}
 
+	/**
+	 * @return the total number of tasks to be executed
+	 */
 	protected abstract int getNumTasks();
 
 	public void run() throws IOException, InterruptedException {
@@ -244,8 +247,21 @@ public abstract class MPJTaskCalculator {
 		debug("Process "+rank+" DONE!");
 	}
 
+	/**
+	 * Called when a set of tasks are to be executed by this worker. The batch array contains task indexes (0-based)
+	 * of each task to be executed. Threading is to be implemented here if applicable, using getNumThreads().
+	 * 
+	 * @param batch array of task indexes (0-based) which should be executed
+	 * @throws Exception
+	 */
 	protected abstract void calculateBatch(int[] batch) throws Exception;
 
+	/**
+	 * Called when all tasks have been executed across all workers. This is where any post processing of results should
+	 * take place, for example, gathering results to the node with rank 0 before writing to a file. MPI commands can be used here if needed.
+	 * 
+	 * @throws Exception
+	 */
 	protected abstract void doFinalAssembly() throws Exception;
 
 	protected static Options createOptions() {
@@ -289,7 +305,7 @@ public abstract class MPJTaskCalculator {
 		ops.addOption(startIndexOption);
 
 		Option endIndexOption = new Option("end", "end-index", true, "If supplied, will calculate tasks up until the"
-				+ " given index, excludsive. Default is the number of tasks.");
+				+ " given index, exclusive. Default is the number of tasks.");
 		endIndexOption.setRequired(false);
 		ops.addOption(endIndexOption);
 
