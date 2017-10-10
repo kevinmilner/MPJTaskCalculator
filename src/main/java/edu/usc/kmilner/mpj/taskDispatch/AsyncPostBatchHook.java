@@ -1,5 +1,6 @@
 package edu.usc.kmilner.mpj.taskDispatch;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -25,6 +26,8 @@ public abstract class AsyncPostBatchHook implements PostBatchHook {
 			exec = Executors.newSingleThreadExecutor();
 		else
 			exec = Executors.newFixedThreadPool(threads);
+		
+		futures = new LinkedList<Future<?>>();
 	}
 	
 	public void batchProcessed(int[] batch, int processIndex) {
