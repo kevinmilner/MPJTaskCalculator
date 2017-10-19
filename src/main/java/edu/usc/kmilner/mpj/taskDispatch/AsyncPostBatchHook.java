@@ -114,7 +114,7 @@ public abstract class AsyncPostBatchHook implements PostBatchHook {
 			str += Utils.smartRatePrint(getNumFinished(), millisSpent);
 			double millisPerTask = (double)millisSpent/(double)getNumFinished();
 			if (getNumRunning() > 0) {
-				double millis = getNumQueued() * millisPerTask;
+				double millis = getNumRunning() * millisPerTask;
 				str += ", time for running: ~"+Utils.smartTimePrint(millis);
 			}
 			if (getNumQueued() > 0) {
