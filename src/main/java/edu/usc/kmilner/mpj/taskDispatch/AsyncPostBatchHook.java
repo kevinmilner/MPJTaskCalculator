@@ -108,18 +108,33 @@ public abstract class AsyncPostBatchHook implements PostBatchHook {
 		return "running="+getNumRunning()+", queued="+getNumQueued()+", finished="+getNumFinished();
 	}
 	
+	/**
+	 * @return average runtime in milliseconds of the post-processing for each task processed
+	 * thus far, or NaN if no batches finished processing. Threading effects ignored.
+	 */
+	public double getAverageTaskDurationMillis() {
+		double finished = getNumFinished();
+		if (finished == 0)
+			return Double.NaN;
+		return (double)millisSpent/finished;
+	}
+	
+	/**
+	 * @return String representation of processing rate and (if applicable) time estimates
+	 * for running and queued batches.
+	 */
 	public String getRatesString() {
 		String str = "rate: ";
 		if (getNumFinished() > 0) {
 			str += Utils.smartRatePrint(getNumFinished(), millisSpent);
-			double millisPerTask = (double)millisSpent/(double)getNumFinished();
+			double millisPerTask = getAverageTaskDurationMillis();
 			if (getNumRunning() > 0) {
 				double millis = getNumRunning() * millisPerTask;
-				str += ", time for running: ~"+Utils.smartTimePrint(millis);
+				str += ", time for running: "+Utils.smartTimePrint(millis);
 			}
 			if (getNumQueued() > 0) {
 				double millis = getNumQueued() * millisPerTask;
-				str += ", time for queue: ~"+Utils.smartTimePrint(millis);
+				str += ", time for queue: "+Utils.smartTimePrint(millis);
 			}
 		} else {
 			str += "n/a";
