@@ -2,6 +2,7 @@ package edu.usc.kmilner.mpj.taskDispatch;
 
 import java.io.File;
 import java.text.Collator;
+import java.text.DecimalFormat;
 import java.util.Comparator;
 
 class Utils {
@@ -116,6 +117,49 @@ class Utils {
 		public String toString() {
 			return "min: " + min + ", max: " + max + ", avg: " + getAverage() + ", tot: "+tot;
 		}
+	}
+	
+private static final DecimalFormat timeDF = new DecimalFormat("0.00");
+	
+	public static String smartTimePrint(double millis) {
+		if (Double.isNaN(millis))
+			return "N/A";
+		double secs = millis / 1000d;
+		if (secs < 1d)
+			return timeDF.format(millis)+" ms";
+		double mins = secs / 60d;
+		if (mins < 1d)
+			return timeDF.format(secs)+" s";
+		double hours = mins / 60d;
+		if (hours < 1d)
+			return timeDF.format(mins)+" m";
+		double days = hours / 24;
+		if (days < 1)
+			return timeDF.format(hours)+" h";
+		return timeDF.format(days)+" d";
+	}
+	
+	public static String smartRatePrint(double numDone, double millis) {
+		if (Double.isNaN(millis))
+			return "N/A";
+		double rate = numDone/millis;
+		if (rate > 1d)
+			return timeDF.format(rate)+" tasks/ms";
+		double secs = millis / 1000d;
+		rate = numDone/secs;
+		if (rate > 1d)
+			return timeDF.format(rate)+" tasks/s";
+		double mins = secs / 60d;
+		rate = numDone/mins;
+		if (rate > 1d)
+			return timeDF.format(rate)+" tasks/m";
+		double hours = mins / 60d;
+		rate = numDone/hours;
+		if (rate > 1d)
+			return timeDF.format(rate)+" tasks/h";
+		double days = hours / 24;
+		rate = numDone/days;
+		return timeDF.format(rate)+" task/d";
 	}
 
 }
