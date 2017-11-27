@@ -9,6 +9,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import mpi.MPI;
+import mpi.MPIException;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -322,7 +323,12 @@ public abstract class MPJTaskCalculator {
 		});
 		if (SINGLE_NODE_NO_MPJ)
 			return args;
-		return MPI.Init(args);
+		try {
+			return MPI.Init(args);
+		} catch (Throwable t) {
+			abortAndExit(t);
+			return null; // not accessible
+		}
 	}
 
 	protected static CommandLine parse(Options options, String args[], Class<?> clazz) {
@@ -359,13 +365,19 @@ public abstract class MPJTaskCalculator {
 	}
 
 	public static void abortAndExit(Throwable t, int ret) {
-		if (t != null)
-			t.printStackTrace();
-		if (deadlock != null)
-			deadlock.kill();
-		if (!SINGLE_NODE_NO_MPJ)
-			MPI.COMM_WORLD.Abort(ret);
-		System.exit(ret);
+		try {
+			if (t != null)
+				t.printStackTrace();
+			if (deadlock != null)
+				deadlock.kill();
+			if (!SINGLE_NODE_NO_MPJ)
+				MPI.COMM_WORLD.Abort(ret);
+		} catch (Throwable t1) {
+			System.err.print("Excpetion during abort");
+			t1.printStackTrace();
+		} finally {
+			System.exit(ret);
+		}
 	}
 
 }
