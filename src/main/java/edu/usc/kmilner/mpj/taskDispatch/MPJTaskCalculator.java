@@ -6,7 +6,15 @@ import java.io.IOException;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.net.UnknownHostException;
 import java.text.SimpleDateFormat;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
+import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import mpi.MPI;
 import mpi.MPIException;
@@ -61,6 +69,8 @@ public abstract class MPJTaskCalculator {
 	private String hostname;
 
 	protected PostBatchHook postBatchHook;
+	
+	private ScheduledExecutorService timeoutScheduler;
 
 	public MPJTaskCalculator(CommandLine cmd) {
 		int numThreads = Runtime.getRuntime().availableProcessors();
@@ -130,6 +140,42 @@ public abstract class MPJTaskCalculator {
 
 		this.startIndex = startIndex;
 		this.endIndex = endIndex;
+		
+		Map<String, String> env = System.getenv();
+		if (rank == 0 && env.containsKey("EndTime")) {
+			// if job end time is known, schedule a job to abort before wall time is reached
+			// this helps to ensure a clean exit. killed jobs that didn't shut down properly
+			// can sometimes inhibit future runs on the same compute node
+			try {
+				String endTimeStr = env.get("EndTime");
+				debug("Detected job end time of "+endTimeStr);
+				LocalDateTime future = LocalDateTime.parse(endTimeStr, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+				LocalDateTime now = LocalDateTime.now();
+				Duration duration = Duration.between(now, future);
+				long secs = duration.get(ChronoUnit.SECONDS);
+				debug("End time in "+secs+" s = "+smartTimePrint(secs*1000l));
+				long buffer;
+				if (secs > 10*60*60)
+					// 60s buffer for 10+ hour jobs
+					buffer = 60;
+				else if (secs > 60*60)
+					// 30s buffer for 1+ hour jobs
+					buffer = 30;
+				else
+					buffer = 0;
+				if (buffer > 0) {
+					// only bother for long running jobs
+					long terminateSecs = secs - buffer;
+					debug("Terminating in "+terminateSecs+" s = "+smartTimePrint(secs*1000l));
+					timeoutScheduler = Executors.newScheduledThreadPool(1);
+					timeoutScheduler.schedule(new TimeoutAbortRunnable(), terminateSecs, TimeUnit.SECONDS);
+					System.out.println("Scheduled timeout");
+				}
+			} catch (Exception e) {
+				System.err.println("Exception creating wall clock abort thread");
+				e.printStackTrace();
+			}
+		}
 	}
 
 	protected int getNumThreads() {
@@ -246,6 +292,15 @@ public abstract class MPJTaskCalculator {
 		}
 
 		debug("Process "+rank+" DONE!");
+		
+		if (timeoutScheduler != null) {
+			try {
+				timeoutScheduler.shutdownNow();
+			} catch (Exception e) {
+				debug("Exception during timout cancellation");
+				e.printStackTrace();
+			}
+		}
 	}
 
 	/**
@@ -373,11 +428,22 @@ public abstract class MPJTaskCalculator {
 			if (!SINGLE_NODE_NO_MPJ)
 				MPI.COMM_WORLD.Abort(ret);
 		} catch (Throwable t1) {
-			System.err.print("Excpetion during abort");
+			System.err.println("Excpetion during abort");
 			t1.printStackTrace();
 		} finally {
+			System.out.println("Exiting");
 			System.exit(ret);
 		}
+	}
+	
+	private static class TimeoutAbortRunnable implements Runnable {
+
+		@Override
+		public void run() {
+			System.out.println("EXCEEDED TIMEOUT, ABORTING");
+			abortAndExit(2);
+		}
+		
 	}
 
 }
