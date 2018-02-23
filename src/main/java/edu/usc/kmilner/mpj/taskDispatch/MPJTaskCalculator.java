@@ -10,7 +10,9 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -25,6 +27,8 @@ import org.apache.commons.cli.GnuParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
+
+import com.google.common.base.Joiner;
 
 /**
  * Abstract class for executing a fixed set of independent tasks via MPJ
@@ -145,7 +149,7 @@ public abstract class MPJTaskCalculator {
 		this.startIndex = startIndex;
 		this.endIndex = endIndex;
 		
-		if (rank == 0 && endTime != null) {
+		if (endTime != null) {
 			// if job end time is known, schedule a job to abort before wall time is reached
 			// this helps to ensure a clean exit. killed jobs that didn't shut down properly
 			// can sometimes inhibit future runs on the same compute node
@@ -153,7 +157,8 @@ public abstract class MPJTaskCalculator {
 				LocalDateTime now = LocalDateTime.now();
 				Duration duration = Duration.between(now, endTime);
 				long secs = duration.get(ChronoUnit.SECONDS);
-				debug("End time in "+secs+" s = "+smartTimePrint(secs*1000l));
+				if (rank == 0)
+					debug("End time in "+secs+" s = "+smartTimePrint(secs*1000l));
 				long buffer;
 				if (secs > 10*60*60)
 					// 60s buffer for 10+ hour jobs
@@ -169,10 +174,11 @@ public abstract class MPJTaskCalculator {
 				if (buffer > 0) {
 					// only bother for long running jobs
 					long terminateSecs = secs - buffer;
-					debug("Terminating in "+terminateSecs+" s = "+smartTimePrint(terminateSecs*1000l));
+					if (rank == 0)
+						debug("Terminating in "+terminateSecs+" s = "+smartTimePrint(terminateSecs*1000l));
 					timeoutScheduler = Executors.newScheduledThreadPool(1);
 					timeoutScheduler.schedule(new TimeoutAbortRunnable(), terminateSecs, TimeUnit.SECONDS);
-					System.out.println("Scheduled timeout");
+//					System.out.println("Scheduled timeout");
 				}
 			} catch (Exception e) {
 				System.err.println("Exception creating wall clock abort thread");
@@ -375,6 +381,80 @@ public abstract class MPJTaskCalculator {
 		ops.addOption(endTimeOption);
 
 		return ops;
+	}
+	
+	public static ArgumentBuilder argumentBuilder() {
+		return new ArgumentBuilder();
+	}
+	
+	public static class ArgumentBuilder {
+		List<String> args;
+		
+		private ArgumentBuilder() {
+			args = new ArrayList<String>();
+		}
+		
+		public ArgumentBuilder minDispatch(int minDispatch) {
+			args.add("--min-dispatch "+minDispatch);
+			return this;
+		}
+		
+		public ArgumentBuilder maxDispatch(int maxDispatch) {
+			args.add("--max-dispatch "+maxDispatch);
+			return this;
+		}
+		
+		public ArgumentBuilder exactDispatch(int exactDispatch) {
+			args.add("--exact-dispatch "+exactDispatch);
+			return this;
+		}
+		
+		public ArgumentBuilder threads(int threads) {
+			args.add("--threads "+threads);
+			return this;
+		}
+		
+		public ArgumentBuilder rootDispatchOnly() {
+			args.add("--root-dispatch-only");
+			return this;
+		}
+		
+		public ArgumentBuilder deadlockDetection() {
+			args.add("--deadlock");
+			return this;
+		}
+		
+		public ArgumentBuilder startIndex(int startIndex) {
+			args.add("--start-index "+startIndex);
+			return this;
+		}
+		
+		public ArgumentBuilder endIndex(int endIndex) {
+			args.add("--end-index "+endIndex);
+			return this;
+		}
+		
+		public ArgumentBuilder endTime(String endTime) {
+			args.add("--end-time "+endTime);
+			return this;
+		}
+		
+		public ArgumentBuilder endTimeSlurm() {
+			args.add("--end-time `scontrol show job $SLURM_JOB_ID | egrep --only-matching 'EndTime=[^ ]+' | cut -c 9-`");
+			return this;
+		}
+		
+		public List<String> getArgs() {
+			return args;
+		}
+		
+		public String build() {
+			return build(" ");
+		}
+		
+		public String build(String separator) {
+			return Joiner.on(separator).join(args);
+		}
 	}
 
 	protected static String[] initMPJ(String[] args) {
