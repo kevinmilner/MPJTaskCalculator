@@ -110,8 +110,12 @@ public abstract class MPJTaskCalculator {
 
 		if (cmd.hasOption("end-index"))
 			endIndex = Integer.parseInt(cmd.getOptionValue("end-index"));
+		
+		LocalDateTime endTime = null;
+		if (cmd.hasOption("end-time"))
+			endTime = LocalDateTime.parse(cmd.getOptionValue("end-time"), DateTimeFormatter.ISO_LOCAL_DATE_TIME);
 
-		init(numThreads, minDispatch, maxDispatch, exactDispatch, rootDispatchOnly, startIndex, endIndex);
+		init(numThreads, minDispatch, maxDispatch, exactDispatch, rootDispatchOnly, startIndex, endIndex, endTime);
 	}
 
 	public MPJTaskCalculator(int numThreads, int minDispatch, int maxDispatch, boolean rootDispatchOnly) {
@@ -119,11 +123,11 @@ public abstract class MPJTaskCalculator {
 	}
 
 	private void init(int numThreads, int minDispatch, int maxDispatch, int exactDispatch, boolean rootDispatchOnly) {
-		init(numThreads, minDispatch, maxDispatch, exactDispatch, rootDispatchOnly, -1, -1);
+		init(numThreads, minDispatch, maxDispatch, exactDispatch, rootDispatchOnly, -1, -1, null);
 	}
 
 	private void init(int numThreads, int minDispatch, int maxDispatch, int exactDispatch, boolean rootDispatchOnly,
-			int startIndex, int endIndex) {
+			int startIndex, int endIndex, LocalDateTime endTime) {
 		if (SINGLE_NODE_NO_MPJ) {
 			this.rank = 0;
 			this.size = 1;
@@ -141,17 +145,13 @@ public abstract class MPJTaskCalculator {
 		this.startIndex = startIndex;
 		this.endIndex = endIndex;
 		
-		Map<String, String> env = System.getenv();
-		if (rank == 0 && env.containsKey("EndTime")) {
+		if (rank == 0 && endTime != null) {
 			// if job end time is known, schedule a job to abort before wall time is reached
 			// this helps to ensure a clean exit. killed jobs that didn't shut down properly
 			// can sometimes inhibit future runs on the same compute node
 			try {
-				String endTimeStr = env.get("EndTime");
-				debug("Detected job end time of "+endTimeStr);
-				LocalDateTime future = LocalDateTime.parse(endTimeStr, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
 				LocalDateTime now = LocalDateTime.now();
-				Duration duration = Duration.between(now, future);
+				Duration duration = Duration.between(now, endTime);
 				long secs = duration.get(ChronoUnit.SECONDS);
 				debug("End time in "+secs+" s = "+smartTimePrint(secs*1000l));
 				long buffer;
@@ -161,12 +161,15 @@ public abstract class MPJTaskCalculator {
 				else if (secs > 60*60)
 					// 30s buffer for 1+ hour jobs
 					buffer = 30;
+				else if (secs > 600)
+					// 15s buffer for 10m+ jobs
+					buffer = 15;
 				else
 					buffer = 0;
 				if (buffer > 0) {
 					// only bother for long running jobs
 					long terminateSecs = secs - buffer;
-					debug("Terminating in "+terminateSecs+" s = "+smartTimePrint(secs*1000l));
+					debug("Terminating in "+terminateSecs+" s = "+smartTimePrint(terminateSecs*1000l));
 					timeoutScheduler = Executors.newScheduledThreadPool(1);
 					timeoutScheduler.schedule(new TimeoutAbortRunnable(), terminateSecs, TimeUnit.SECONDS);
 					System.out.println("Scheduled timeout");
@@ -364,6 +367,12 @@ public abstract class MPJTaskCalculator {
 				+ " given index, exclusive. Default is the number of tasks.");
 		endIndexOption.setRequired(false);
 		ops.addOption(endIndexOption);
+
+		Option endTimeOption = new Option("endtime", "end-time", true, "If supplied and end time is more than 10m from job start,"
+				+ " job will be aborted 15-60s before this time to avoid being killed externally. ISO 8601 local datetime, "
+				+ "e.g. '2018-02-23T15:22:59'");
+		endTimeOption.setRequired(false);
+		ops.addOption(endTimeOption);
 
 		return ops;
 	}
