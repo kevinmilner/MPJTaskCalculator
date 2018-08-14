@@ -161,14 +161,14 @@ public abstract class MPJTaskCalculator {
 					debug("End time in "+secs+" s = "+smartTimePrint(secs*1000l));
 				long buffer;
 				if (secs > 10*60*60)
-					// 60s buffer for 10+ hour jobs
-					buffer = 60;
+					// 120s buffer for 10+ hour jobs
+					buffer = 120;
 				else if (secs > 60*60)
-					// 30s buffer for 1+ hour jobs
-					buffer = 30;
+					// 60s buffer for 1+ hour jobs
+					buffer = 60;
 				else if (secs > 600)
-					// 15s buffer for 10m+ jobs
-					buffer = 15;
+					// 30s buffer for 10m+ jobs
+					buffer = 30;
 				else
 					buffer = 0;
 				if (buffer > 0) {
