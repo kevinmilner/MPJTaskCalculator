@@ -43,12 +43,13 @@ public class MPJTaskLogStatsGen {
 			Arrays.sort(files, new FileNameComparator());
 			File match = null;
 			for (int i=files.length; --i>=0;) {
-				if (files[i].getName().contains(".pbs.o")) {
+				if (files[i].getName().contains(".pbs.o") || files[i].getName().contains(".slurm.o")) {
 					match = files[i];
 					break;
 				}
 			}
-			Preconditions.checkState(match != null, "No *.pbs.o* output file found in directory: %s", logFile.getAbsolutePath());
+			Preconditions.checkState(match != null, "No *.pbs.o* or *.slurm.o* output file found in directory: %s",
+					logFile.getAbsolutePath());
 			System.out.println("Found match in directory: "+match.getAbsolutePath());
 			logFile = match;
 		}
