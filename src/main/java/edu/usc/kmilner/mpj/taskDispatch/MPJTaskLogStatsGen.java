@@ -347,7 +347,7 @@ public class MPJTaskLogStatsGen {
 		}
 	}
 	
-	private static class LogFileIterable implements Iterable<String> {
+	public static class LogFileIterable implements Iterable<String> {
 		
 		private BufferedReader read;
 		
@@ -663,7 +663,7 @@ public class MPJTaskLogStatsGen {
 	private final static long MILLISEC_PER_DAY = 1000*60*60*24;
 	private static final long HALF_DAY_MILLIS = MILLISEC_PER_DAY/2;
 	
-	private static Date parseDate(String line, Date prevDate) {
+	public static Date parseDate(String line, Date prevDate) {
 		line = line.substring(1).split(" ")[0];
 		try {
 			Date date =  MPJTaskCalculator.df.parse(line);
