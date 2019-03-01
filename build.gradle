@@ -11,7 +11,7 @@ repositories {
 dependencies {
     api files('lib/mpj-0.38.jar')
 
-    compile 'com.google.guava:guava:21.0'
+    compile 'com.google.guava:guava:26.0-jre'
     compile 'commons-cli:commons-cli:1.4'
 
     // Use JUnit test framework
