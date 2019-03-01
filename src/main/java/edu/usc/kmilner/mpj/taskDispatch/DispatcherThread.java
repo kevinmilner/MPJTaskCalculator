@@ -7,6 +7,7 @@ import java.util.Date;
 import java.util.Deque;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 import mpi.MPI;
 
@@ -67,7 +68,7 @@ class DispatcherThread extends Thread {
 		
 		if (shuffle) {
 			debug("shuffling stack");
-			Collections.shuffle(list);
+			Collections.shuffle(list, new Random(size*numTasks));
 		}
 		stack = new ArrayDeque<Integer>(list);
 		outstandingBatches = Maps.newHashMap();
