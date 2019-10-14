@@ -11,7 +11,7 @@ MPJTaskCalculator can be used to execute calculations in parallel where the foll
 * The number of tasks is known at the beginning of the calculation
 * Each task has a unique index which is known to all workers
 * The number of tasks should be greater than or equal to the number of workers
-* You have an MPJ implementation working in your execution environment (e.g. [MPJ Express](http://mpj-express.org/) or [FastMPJ](http://fastmpj.com))
+* You have an MPJ implementation working in your execution environment (e.g. [MPJ Express](http://mpj-express.org/) or [FastMPJ](http://fastmpj.com)). I recommend my [fork of MPJ Express](https://github.com/kevinmilner/mpj-express) which has been modified to minimize launch failures with retries and useful exit codes (no silent errors).
 
 ## How it works
 MPJTaskCalculator uses an MPJ implementation for intra-process communication (either within a single machine, or in a grid computing environment). The root process (rank=0) starts a dispatcher which manages the list of all tasks to be dispatched. It then dispatches batches of tasks to each worker to be executed. Batches are simply an array of task indexes which are to be executed, the size of each batch is determined from the number of workers and remaining tasks (smaller batches later in the calculation). Whenever a worker completes a batch, it will ask for a new batch until all tasks have been completed. Once all tasks have been dispatched and executed, it will execute any calcultaion-specific post processing, then exit.
