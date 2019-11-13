@@ -2,6 +2,7 @@ package edu.usc.kmilner.mpj.taskDispatch;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Deque;
@@ -38,11 +39,12 @@ class DispatcherThread extends Thread {
 	private Map<Integer, int[]> outstandingBatches;
 	
 	DispatcherThread(int size, int numTasks, int minPerDispatch, int maxPerDispatch, boolean shuffle) {
-		this(size, numTasks, minPerDispatch, maxPerDispatch, -1, shuffle, 0, numTasks, null);
+		this(size, numTasks, minPerDispatch, maxPerDispatch, -1, shuffle, 0, numTasks, null, null);
 	}
 	
 	DispatcherThread(int size, int numTasks, int minPerDispatch, int maxPerDispatch,
-			int exactDispatch, boolean shuffle, int startIndex, int endIndex, PostBatchHook postBatchHook) {
+			int exactDispatch, boolean shuffle, int startIndex, int endIndex, PostBatchHook postBatchHook,
+			Collection<Integer> doneIndexes) {
 		this.size = size;
 		this.minPerDispatch = minPerDispatch;
 		this.maxPerDispatch = maxPerDispatch;
@@ -51,7 +53,7 @@ class DispatcherThread extends Thread {
 		Preconditions.checkArgument(minPerDispatch <= maxPerDispatch, "min per dispatch must be <= max");
 		Preconditions.checkArgument(minPerDispatch >= 1, "min per dispatch must be >= 1");
 		Preconditions.checkArgument(size >= 1, "size must be >= 1");
-		Preconditions.checkArgument(numTasks >= 1, "num sites must be >= 1");
+		Preconditions.checkArgument(numTasks >= 1, "num tasks must be >= 1");
 		Preconditions.checkState(startIndex >= 0 && startIndex < numTasks,
 				"Start index must be >= 0 and less than the number of tasks.");
 		Preconditions.checkState(endIndex > 0 && endIndex <= numTasks && endIndex > startIndex,
@@ -62,9 +64,13 @@ class DispatcherThread extends Thread {
 		if (startIndex > 0 || endIndex < numTasks)
 			debug("startIndex="+startIndex+", endIndex="+endIndex);
 		
+		if (doneIndexes != null && !doneIndexes.isEmpty())
+			debug("skipping "+doneIndexes.size()+" already done");
+		
 		ArrayList<Integer> list = new ArrayList<Integer>();
 		for (int i=startIndex; i<endIndex; i++)
-			list.add(i);
+			if (doneIndexes == null || !doneIndexes.contains(i))
+				list.add(i);
 		
 		if (shuffle) {
 			debug("shuffling stack");

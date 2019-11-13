@@ -1,6 +1,7 @@
 package edu.usc.kmilner.mpj.taskDispatch;
 
-import static edu.usc.kmilner.mpj.taskDispatch.Utils.*;
+import static edu.usc.kmilner.mpj.taskDispatch.Utils.getClassNameWithoutPackage;
+import static edu.usc.kmilner.mpj.taskDispatch.Utils.smartTimePrint;
 
 import java.io.IOException;
 import java.lang.Thread.UncaughtExceptionHandler;
@@ -11,24 +12,23 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import mpi.MPI;
-import mpi.MPIException;
-
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.GnuParser;
+import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
 import com.google.common.base.Joiner;
+
+import mpi.MPI;
 
 /**
  * Abstract class for executing a fixed set of independent tasks via MPJ
@@ -218,6 +218,14 @@ public abstract class MPJTaskCalculator {
 	 * @return the total number of tasks to be executed
 	 */
 	protected abstract int getNumTasks();
+	
+	/**
+	 * @return a collection (HashSet suggested for efficiency) of indexes which are already completed, e.g. if restarting,
+	 * and can be skipped by the dispatcher, or null (default implementation) if everything should be calculated
+	 */
+	protected Collection<Integer> getDoneIndexes() {
+		return null;
+	}
 
 	public void run() throws IOException, InterruptedException {
 		if (rank == 0) {
@@ -227,7 +235,7 @@ public abstract class MPJTaskCalculator {
 			if (endIndex < 0)
 				endIndex = getNumTasks();
 			dispatcher = new DispatcherThread(size, getNumTasks(),
-					minDispatch, maxDispatch, exactDispatch, shuffle, startIndex, endIndex, postBatchHook);
+					minDispatch, maxDispatch, exactDispatch, shuffle, startIndex, endIndex, postBatchHook, getDoneIndexes());
 			if (rootDispatchOnly) {
 				debug("starting dispatcher serially");
 				dispatcher.run();
@@ -477,7 +485,7 @@ public abstract class MPJTaskCalculator {
 
 	protected static CommandLine parse(Options options, String args[], Class<?> clazz) {
 		try {
-			CommandLineParser parser = new GnuParser();
+			CommandLineParser parser = new DefaultParser();
 
 			CommandLine cmd = parser.parse(options, args);
 			return cmd;

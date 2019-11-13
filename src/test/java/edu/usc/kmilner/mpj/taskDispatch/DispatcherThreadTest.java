@@ -61,7 +61,7 @@ public class DispatcherThreadTest {
 		int procs = randomSize(2, 10);
 		
 		DummyPostBatchHook hook = new DummyPostBatchHook();
-		DispatcherThread dispatcher = new DispatcherThread(procs, numTasks, procs, numTasks, -1, false, 0, numTasks, hook);
+		DispatcherThread dispatcher = new DispatcherThread(procs, numTasks, procs, numTasks, -1, false, 0, numTasks, hook, null);
 		
 		boolean[] dones = new boolean[procs];
 		
@@ -137,7 +137,7 @@ public class DispatcherThreadTest {
 			int numTasks = randomSize(50, 500);
 			int exactDispatch = randomSize(1, numTasks);
 			DispatcherThread dispatcher = new DispatcherThread(
-					10, numTasks, exactDispatch, exactDispatch, exactDispatch, true, 0, numTasks, null);
+					10, numTasks, exactDispatch, exactDispatch, exactDispatch, true, 0, numTasks, null, null);
 			doTestBatchSizes(dispatcher, exactDispatch, exactDispatch, numTasks);
 		}
 	}
@@ -191,7 +191,7 @@ public class DispatcherThreadTest {
 	}
 	
 	private void doTestSubsetIndexes(int numTasks, int startIndex, int endIndex) {
-		DispatcherThread dispatcher = new DispatcherThread(10, numTasks, 1, numTasks, -1, true, startIndex, endIndex, null);
+		DispatcherThread dispatcher = new DispatcherThread(10, numTasks, 1, numTasks, -1, true, startIndex, endIndex, null, null);
 		int numProcessed = 0;
 		while (true) {
 			int[] batch = dispatcher.getNextBatch(0);
