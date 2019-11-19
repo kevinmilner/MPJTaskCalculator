@@ -70,7 +70,7 @@ public abstract class MPJTaskCalculator {
 
 	private static DeadlockDetectionThread deadlock;
 
-	private String hostname;
+	protected String hostname;
 
 	protected PostBatchHook postBatchHook;
 	
@@ -84,10 +84,6 @@ public abstract class MPJTaskCalculator {
 		int startIndex = -1;
 		int endIndex = -1;
 		boolean rootDispatchOnly = false;
-
-		try {
-			hostname = java.net.InetAddress.getLocalHost().getHostName();
-		} catch (UnknownHostException e) {}
 
 		if (cmd.hasOption("threads"))
 			numThreads = Integer.parseInt(cmd.getOptionValue("threads"));
@@ -140,6 +136,11 @@ public abstract class MPJTaskCalculator {
 			this.rank = MPI.COMM_WORLD.Rank();
 			this.size = MPI.COMM_WORLD.Size();
 		}
+
+		try {
+			hostname = java.net.InetAddress.getLocalHost().getHostName();
+		} catch (UnknownHostException e) {}
+		
 		this.numThreads = numThreads;
 		this.minDispatch = minDispatch;
 		this.maxDispatch = maxDispatch;
