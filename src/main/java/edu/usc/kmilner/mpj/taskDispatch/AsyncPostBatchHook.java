@@ -78,6 +78,10 @@ public abstract class AsyncPostBatchHook implements PostBatchHook {
 		}
 	}
 	
+	public List<Runnable> shutdownNow() {
+		return exec.shutdownNow();
+	}
+	
 	protected abstract void batchProcessedAsync(int[] batch, int processIndex);
 
 	/**
